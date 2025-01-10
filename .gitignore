@@ -5,6 +5,8 @@
 
 DevNotes.txt
 
+.vscode/
+
 # User-specific files
 *.rsuser
 *.suo
