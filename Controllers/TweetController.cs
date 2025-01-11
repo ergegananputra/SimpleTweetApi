@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using SimpleTweetApi.Enum;
 using SimpleTweetApi.Models.App;
 using SimpleTweetApi.Models.Auth;
 using SimpleTweetApi.Resources.Requests;
@@ -196,6 +197,121 @@ public class TweetController : ControllerBase
         return Ok(new BaseResponse<Tweet>(
             Status: 200,
             Message: "Tweet deleted successfully",
+            Data: null
+            ));
+    }
+
+
+    // PUT api/<ValuesController>/5/like
+    [HttpPut("{uuid}/like")]
+    public async Task<IActionResult> Like(Guid uuid)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized(new BaseResponse<Tweet>(
+                Status: 401,
+                Message: "User not authenticated",
+                Data: null
+                ));
+        }
+        var tweet = await _tweetCoreService.Tweet(uuid);
+        if (tweet == null)
+        {
+            return NotFound(new BaseResponse<Tweet>(
+                Status: 404,
+                Message: "Tweet not found",
+                Data: null
+                ));
+        }
+        var liked = await _tweetCoreService.Like(uuid, user.Id);
+        if (!liked)
+        {
+            return BadRequest(new BaseResponse<Tweet>(
+                Status: 400,
+                Message: "Tweet could not be liked",
+                Data: null
+                ));
+        }
+        return Ok(new BaseResponse<Tweet>(
+            Status: 200,
+            Message: "Tweet liked successfully",
+            Data: null
+            ));
+    }
+
+    // PUT api/<ValuesController>/5/unlike
+    [HttpPut("{uuid}/unlike")]
+    public async Task<IActionResult> Unlike(Guid uuid)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized(new BaseResponse<Tweet>(
+                Status: 401,
+                Message: "User not authenticated",
+                Data: null
+                ));
+        }
+        var tweet = await _tweetCoreService.Tweet(uuid);
+        if (tweet == null)
+        {
+            return NotFound(new BaseResponse<Tweet>(
+                Status: 404,
+                Message: "Tweet not found",
+                Data: null
+                ));
+        }
+        var unliked = await _tweetCoreService.Unlike(uuid, user.Id);
+        if (!unliked)
+        {
+            return BadRequest(new BaseResponse<Tweet>(
+                Status: 400,
+                Message: "Tweet could not be unliked",
+                Data: null
+                ));
+        }
+        return Ok(new BaseResponse<Tweet>(
+            Status: 200,
+            Message: "Tweet unliked successfully",
+            Data: null
+            ));
+    }
+
+    // POST api/<ValuesController>/5/report
+    [HttpPost("{uuid}/report")]
+    public async Task<IActionResult> Report(Guid uuid, [FromBody] string reason)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized(new BaseResponse<Tweet>(
+                Status: 401,
+                Message: "User not authenticated",
+                Data: null
+                ));
+        }
+        var tweet = await _tweetCoreService.Tweet(uuid);
+        if (tweet == null)
+        {
+            return NotFound(new BaseResponse<Tweet>(
+                Status: 404,
+                Message: "Tweet not found",
+                Data: null
+                ));
+        }
+        var reported = await _tweetCoreService.Flag(uuid, FlagType.PENDING_REPORT.ToString() , user.Id, reason);
+        if (!reported)
+        {
+            return BadRequest(new BaseResponse<Tweet>(
+                Status: 400,
+                Message: "Tweet could not be reported",
+                Data: null
+                ));
+        }
+        return Ok(new BaseResponse<Tweet>(
+            Status: 200,
+            Message: "Tweet reported successfully",
             Data: null
             ));
     }

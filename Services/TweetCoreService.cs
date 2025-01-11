@@ -19,6 +19,7 @@ public class TweetCoreService
     {
         var query = _context.Tweets
             .Where(t => t.DeletedAt == null)
+            .Where(t => !t.Flags.Contains("REPORT"))
             .OrderByDescending(t => t.CreatedAt)
             .AsQueryable();
 
@@ -77,7 +78,7 @@ public class TweetCoreService
         return true;
     }
 
-    internal async Task<bool> Like(Guid uuid)
+    public async Task<bool> Like(Guid uuid, string userId)
     {
         //TODO: Temporary Implementation, fix this later
         var tweet = await _context.Tweets.FindAsync(uuid);
@@ -85,12 +86,47 @@ public class TweetCoreService
         {
             return false;
         }
-        tweet.Likes++;
-        await _context.SaveChangesAsync();
-        return true;
+
+        var tweetLikes = await _context.TweetLikes.FindAsync(tweet.Uuid, tweet.UserId);
+
+        if (tweetLikes != null)
+        {
+            return false;
+        }
+
+        tweetLikes = new TweetLikes
+        {
+            TweetUuid = tweet.Uuid,
+            UserId = userId,
+        };
+
+        try
+        {
+            await _context.Database.BeginTransactionAsync();
+            await _context.TweetLikes.AddAsync(tweetLikes);
+
+            int newTweetLikeCount = await _context.TweetLikes
+                .Where(tl => tl.TweetUuid == tweet.Uuid)
+                .Where(tl => tl.DeletedAt == null)
+                .CountAsync();
+
+            tweet.Likes = newTweetLikeCount;
+
+            await _context.SaveChangesAsync();
+
+            await _context.Database.CommitTransactionAsync();
+            return true;
+        }
+        catch (DbUpdateException)
+        {
+            await _context.Database.RollbackTransactionAsync();
+            return false;
+        }
+
+        
     }
 
-    internal async Task<bool> Unlike(Guid uuid)
+    public async Task<bool> Unlike(Guid uuid, string userId)
     {
         //TODO: Temporary Implementation, fix this later
         var tweet = await _context.Tweets.FindAsync(uuid);
@@ -98,12 +134,39 @@ public class TweetCoreService
         {
             return false;
         }
-        tweet.Likes--;
-        await _context.SaveChangesAsync();
-        return true;
+
+        TweetLikes? tweetLikes = await _context.TweetLikes.FindAsync(tweet.Uuid, userId);
+
+        if (tweetLikes == null)
+        {
+            return false;
+        }
+
+        try
+        {
+            await _context.Database.BeginTransactionAsync();
+            await _context.TweetLikes.AddAsync(tweetLikes);
+
+            int newTweetLikeCount = await _context.TweetLikes
+                .Where(tl => tl.TweetUuid == tweet.Uuid)
+                .Where(tl => tl.DeletedAt == null)
+                .CountAsync();
+
+            tweet.Likes = newTweetLikeCount;
+
+            await _context.SaveChangesAsync();
+
+            await _context.Database.CommitTransactionAsync();
+            return true;
+        }
+        catch (DbUpdateException)
+        {
+            await _context.Database.RollbackTransactionAsync();
+            return false;
+        }
     }
 
-    internal async Task<bool> Flag(Guid uuid, string flag)
+    public async Task<bool> Flag(Guid uuid, string flagCode, string userId, string note)
     {
         var tweet = await _context.Tweets.FindAsync(uuid);
         if (tweet == null || tweet.DeletedAt != null)
@@ -111,9 +174,51 @@ public class TweetCoreService
             return false;
         }
 
-        tweet.Flags = flag;
-        await _context.SaveChangesAsync();
-        return true;
+        TweetFlags? tweetFlags = await _context.TweetFlags.FindAsync(tweet.Uuid, userId);
+
+        if (tweetFlags != null)
+        {
+            return false;
+        }
+
+        tweetFlags = new TweetFlags
+        {
+            TweetUuid = tweet.Uuid,
+            FlagCode = flagCode,
+            ReporterUuid = userId,
+            Note = note
+        };
+
+        try
+        {
+            await _context.Database.BeginTransactionAsync();
+            await _context.TweetFlags.AddAsync(tweetFlags);
+
+         
+            if (flagCode.Contains("REPORT"))
+            {
+                // Count the number of flags for this tweet with the same flag code
+                int newTweetFlagCount = await _context.TweetFlags
+                    .Where(tf => tf.TweetUuid == tweet.Uuid)
+                    .Where(tf => tf.FlagCode == flagCode)
+                    .Where(tf => tf.DeletedAt == null)
+                    .CountAsync();
+
+                if (newTweetFlagCount >= 5)
+                {
+                    tweet.Flags = flagCode.Replace("PENDING_", "");
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            await _context.Database.CommitTransactionAsync();
+            return true;
+        }
+        catch (DbUpdateException)
+        {
+            await _context.Database.RollbackTransactionAsync();
+            return false;
+        }
     }
 
 

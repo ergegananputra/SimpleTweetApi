@@ -64,7 +64,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         BaseModelConfiguration(builder.Entity<TweetFlags>(), entity =>
         {
-            entity.HasKey(e => new { e.TweetUuid, e.FlagCode });
+            entity.HasKey(e => new { e.TweetUuid, e.ReporterUuid });
 
             entity.Property(e => e.Note)
                 .HasMaxLength(500);

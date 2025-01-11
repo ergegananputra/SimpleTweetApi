@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SimpleTweetApi.Database;
 using SimpleTweetApi.Extensions;
+using SimpleTweetApi.Middlewares;
 using SimpleTweetApi.Models.Auth;
 using SimpleTweetApi.Services;
 
@@ -29,6 +30,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     );
 
 builder.Services.AddScoped<TweetCoreService>();
+builder.Services.AddScoped<FlagService>();
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 var app = builder.Build();
 

@@ -42,7 +42,7 @@ namespace SimpleTweetApi.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TweetFlags", x => new { x.TweetUuid, x.FlagCode });
+                    table.PrimaryKey("PK_TweetFlags", x => new { x.TweetUuid, x.ReporterUuid });
                     table.ForeignKey(
                         name: "FK_TweetFlags_Flag_FlagCode",
                         column: x => x.FlagCode,
