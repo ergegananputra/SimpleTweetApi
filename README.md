@@ -2,10 +2,10 @@
 SimpleTweetApi is a mock-up of Twitter or X built with ASP.NET Core. It includes features such as tweeting, user management, liking tweets, and reporting tweets.
 
 ### Features
--Tweeting: Users can create, update, and delete tweets.
--User Management: Users can register, log in, and manage their profiles.
--Liking Tweets: Users can like and unlike tweets.
--Reporting Tweets: Users can report tweets for various reasons.
+- Tweeting: Users can create, update, and delete tweets.
+- User Management: Users can register, log in, and manage their profiles.
+- Liking Tweets: Users can like and unlike tweets.
+- Reporting Tweets: Users can report tweets for various reasons.
 
 ## Getting Started
 
