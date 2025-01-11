@@ -70,7 +70,7 @@ SimpleTweetApi is a mock-up of Twitter or X built with ASP.NET Core. It includes
 ### Setup
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/SimpleTweetApi.git
+git clone https://github.com/ergegananputra/SimpleTweetApi.git
 cd SimpleTweetApi
 ```
 2. Update the connection string in appsettings.Development.json:
