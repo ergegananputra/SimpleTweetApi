@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Numerics;
+using System.Text.Json.Serialization;
 using SimpleTweetApi.Models.Auth;
 
 namespace SimpleTweetApi.Models.App;
@@ -14,6 +15,9 @@ public class Tweet : BaseModel
     public string UserId { get; set; }
 
     // Relations
+    [JsonIgnore]
     public User User { get; set; }
+
+    [JsonIgnore]
     public ICollection<TweetLikes> UsersWhoLikes { get; set; } = new List<TweetLikes>();
 }

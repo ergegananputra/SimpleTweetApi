@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Identity;
 using SimpleTweetApi.Models.App;
 
 namespace SimpleTweetApi.Models.Auth;
@@ -11,6 +12,8 @@ public class User : IdentityUser
     public DateTimeOffset? DeletedAt { get; set; }
 
     // Relations
+    [JsonIgnore]
     public ICollection<Tweet> Tweets { get; set; } = new List<Tweet>();
+    [JsonIgnore]
     public ICollection<TweetLikes> TweetsLiked { get; set; } = new List<TweetLikes>();
 }
